@@ -298,6 +298,8 @@ def run(data,
     maps = np.zeros(nc) + map
     for i, c in enumerate(ap_class):
         maps[c] = ap[i]
+    print(iou)
+    print(len(iou))
     # 以下利用混淆矩阵计算计算accuracy
     acc = 0
     leng = len(confusion_matrix.matrix)
