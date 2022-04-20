@@ -77,7 +77,7 @@ def process_batch(detections, labels, iouv):
             matches = matches[np.unique(matches[:, 0], return_index=True)[1]]
         matches = torch.Tensor(matches).to(iouv.device)
         correct[matches[:, 1].long()] = matches[:, 2:3] >= iouv
-    return correct
+    return correct,iou
 
 
 @torch.no_grad()
@@ -213,7 +213,7 @@ def run(data,
                 tbox = xywh2xyxy(labels[:, 1:5])  # target boxes
                 scale_coords(im[si].shape[1:], tbox, shape, shapes[si][1])  # native-space labels
                 labelsn = torch.cat((labels[:, 0:1], tbox), 1)  # native-space labels
-                correct = process_batch(predn, labelsn, iouv)
+                correct,iou = process_batch(predn, labelsn, iouv)
                 if True:
                     confusion_matrix.process_batch(predn, labelsn)
             else:
@@ -300,6 +300,7 @@ def run(data,
         maps[c] = ap[i]
     print(iou)
     print(len(iou))
+    print(iou.mean())
     # 以下利用混淆矩阵计算计算accuracy
     acc = 0
     leng = len(confusion_matrix.matrix)
