@@ -33,6 +33,12 @@ from utils.metrics import ConfusionMatrix, ap_per_class
 from utils.plots import output_to_target, plot_images, plot_val_study
 from utils.torch_utils import select_device, time_sync
 
+def miou_calculate(hist):
+ 
+    iou = np.diag(hist) / (hist.sum(axis=1) + hist.sum(axis=0) - np.diag(hist))
+    miou = np.nanmean(iou)
+ 
+    return miou
 
 def save_one_txt(predn, save_conf, shape, file):
     # Save one txt result
@@ -77,7 +83,7 @@ def process_batch(detections, labels, iouv):
             matches = matches[np.unique(matches[:, 0], return_index=True)[1]]
         matches = torch.Tensor(matches).to(iouv.device)
         correct[matches[:, 1].long()] = matches[:, 2:3] >= iouv
-    return correct,iou
+    return correct
 
 
 @torch.no_grad()
@@ -213,7 +219,7 @@ def run(data,
                 tbox = xywh2xyxy(labels[:, 1:5])  # target boxes
                 scale_coords(im[si].shape[1:], tbox, shape, shapes[si][1])  # native-space labels
                 labelsn = torch.cat((labels[:, 0:1], tbox), 1)  # native-space labels
-                correct,iou = process_batch(predn, labelsn, iouv)
+                correct = process_batch(predn, labelsn, iouv)
                 if True:
                     confusion_matrix.process_batch(predn, labelsn)
             else:
@@ -298,9 +304,8 @@ def run(data,
     maps = np.zeros(nc) + map
     for i, c in enumerate(ap_class):
         maps[c] = ap[i]
-    print(iou)
-    print(len(iou))
-    print(iou.mean())
+    # 以下利用混淆矩阵计算mIou，具体信息可以见https://medium.com/@cyborg.team.nitr/miou-calculation-4875f918f4cb
+    miou = miou_calculate(confusion_matrix.matrix)
     # 以下利用混淆矩阵计算计算accuracy
     acc = 0
     leng = len(confusion_matrix.matrix)
@@ -310,7 +315,7 @@ def run(data,
         temp = temp1/temp2
         temp/=leng
         acc+=temp
-    return (mp, mr, map50, map, *(loss.cpu() / len(dataloader)).tolist()), maps, t, acc
+    return (mp, mr, map50, map, *(loss.cpu() / len(dataloader)).tolist()), maps, t, acc, miou
 
 
 def parse_opt():
