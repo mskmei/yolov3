@@ -323,7 +323,7 @@ def train(hyp,  # path/to/hyp.yaml or hyp dictionary
                     loss *= 4.
 
             # Backward
-            loss.requires_grad_(True)
+           
             scaler.scale(loss).backward()
 
             # Optimize
