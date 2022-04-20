@@ -298,7 +298,15 @@ def run(data,
     maps = np.zeros(nc) + map
     for i, c in enumerate(ap_class):
         maps[c] = ap[i]
-    return (mp, mr, map50, map, *(loss.cpu() / len(dataloader)).tolist()), maps, t
+    acc = 0
+    leng = len(confusion_matrix.matrix)
+    for i in range(leng):
+        temp1 = confusion_matrix.matrix[i][i]
+        temp2 = (confusion_matrix.matrix[i]).sum()+1e-16
+        temp = temp1/temp2
+        temp/=leng
+        acc+=temp
+    return (mp, mr, map50, map, *(loss.cpu() / len(dataloader)).tolist()), maps, t, acc
 
 
 def parse_opt():
