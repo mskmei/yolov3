@@ -299,6 +299,7 @@ def run(data,
     for i, c in enumerate(ap_class):
         maps[c] = ap[i]
     acc = 0
+    print(confusion_matrix.matrix)
     leng = len(confusion_matrix.matrix)
     for i in range(leng):
         temp1 = confusion_matrix.matrix[i][i]
