@@ -46,7 +46,7 @@ class Loggers():
         self.keys = ['train/box_loss', 'train/obj_loss', 'train/cls_loss',  # train loss
                      'metrics/precision', 'metrics/recall', 'metrics/mAP_0.5', 'metrics/mAP_0.5:0.95',  # metrics
                      'val/box_loss', 'val/obj_loss', 'val/cls_loss',  # val loss
-                     'x/lr0', 'x/lr1', 'x/lr2', 'val/accuracy', 'val/mIou']  # params
+                     'x/lr0', 'x/lr1', 'x/lr2', 'val/accuracy', 'val/mIou','val/loss', 'train/loss']  # params
         for k in LOGGERS:
             setattr(self, k, None)  # init empty logger dictionary
         self.csv = True  # always log to csv
@@ -112,6 +112,13 @@ class Loggers():
 
     def on_fit_epoch_end(self, vals, epoch, best_fitness, fi):
         # Callback runs at the end of each fit (train+val) epoch
+        
+        #我们额外计算val与train过程的总loss
+        val_loss = vals[7] + vals[8] + vals[9]
+        train_loss = vals[0] + vals[1] + vals[2]
+        vals.append(val_loss)
+        vals.append(train_loss)
+        
         x = {k: v for k, v in zip(self.keys, vals)}  # dict
         if self.csv:
             file = self.save_dir / 'results.csv'
